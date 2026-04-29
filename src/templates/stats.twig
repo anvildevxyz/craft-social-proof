@@ -1,0 +1,168 @@
+{% extends '_layouts/cp' %}
+{% do view.registerAssetBundle('anvildev\\socialproof\\assets\\CpAsset') %}
+
+{% set title = 'Social Proof Statistics'|t('social-proof') %}
+
+{% block content %}
+
+    <div class="sp-dashboard">
+
+        {# Toolbar: Period selector + Export #}
+        <div class="sp-toolbar">
+            <div class="sp-period-group" id="sp-period-selector" data-current-period="{{ period }}">
+                <button type="button" class="sp-period-btn {% if period == '7d' %}active{% endif %}" data-period="7d">
+                    {{ '7 Days'|t('social-proof') }}
+                </button>
+                <button type="button" class="sp-period-btn {% if period == '30d' %}active{% endif %}" data-period="30d">
+                    {{ '30 Days'|t('social-proof') }}
+                </button>
+                <button type="button" class="sp-period-btn {% if period == '90d' %}active{% endif %}" data-period="90d">
+                    {{ '90 Days'|t('social-proof') }}
+                </button>
+            </div>
+
+            <button type="button" class="sp-export-btn" id="sp-export-csv">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                {{ 'Export CSV'|t('social-proof') }}
+            </button>
+        </div>
+
+        {# Stat cards #}
+        <div class="sp-metrics{% if commerceInstalled %} sp-metrics--5{% endif %}" id="sp-stats-grid">
+            <div class="sp-metric sp-metric--impressions">
+                <div class="sp-metric__icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </div>
+                <div class="sp-metric__value" id="sp-val-impressions">{{ stats.impressions|number_format }}</div>
+                <div class="sp-metric__label">{{ 'Impressions'|t('social-proof') }}</div>
+            </div>
+
+            <div class="sp-metric sp-metric--clicks">
+                <div class="sp-metric__icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5"/></svg>
+                </div>
+                <div class="sp-metric__value" id="sp-val-clicks">{{ stats.clicks|number_format }}</div>
+                <div class="sp-metric__label">{{ 'Clicks'|t('social-proof') }}</div>
+            </div>
+
+            <div class="sp-metric sp-metric--ctr">
+                <div class="sp-metric__icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+                </div>
+                <div class="sp-metric__value" id="sp-val-ctr">{{ stats.ctr }}%</div>
+                <div class="sp-metric__label">{{ 'Click-Through Rate'|t('social-proof') }}</div>
+            </div>
+
+            <div class="sp-metric sp-metric--visitors">
+                <div class="sp-metric__icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div class="sp-metric__value" id="sp-val-visitors">{{ stats.uniqueVisitors|number_format }}</div>
+                <div class="sp-metric__label">{{ 'Unique Visitors'|t('social-proof') }}</div>
+            </div>
+
+            {% if commerceInstalled %}
+                <div class="sp-metric sp-metric--orders">
+                    <div class="sp-metric__icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                    </div>
+                    <div class="sp-metric__value" id="sp-val-orders">{{ recentOrderCount|number_format }}</div>
+                    <div class="sp-metric__label">{{ 'Orders (24h)'|t('social-proof') }}</div>
+                </div>
+            {% endif %}
+        </div>
+
+        {# Daily Activity #}
+        <div class="sp-panel">
+            <div class="sp-panel__header">
+                <h2 class="sp-panel__title">{{ 'Daily Activity'|t('social-proof') }}</h2>
+            </div>
+
+            {% set maxImpressions = 1 %}
+            {% for day in stats.dailyStats %}
+                {% if day.impressions > maxImpressions %}
+                    {% set maxImpressions = day.impressions %}
+                {% endif %}
+            {% endfor %}
+
+            <div class="sp-table-wrap">
+                <table class="sp-table" id="sp-daily-table">
+                    <thead>
+                        <tr>
+                            <th>{{ 'Date'|t('social-proof') }}</th>
+                            <th class="right">{{ 'Impressions'|t('social-proof') }}</th>
+                            <th class="right">{{ 'Clicks'|t('social-proof') }}</th>
+                            <th class="right">{{ 'Dismisses'|t('social-proof') }}</th>
+                            <th class="sp-bar-cell"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for day in stats.dailyStats|reverse %}
+                            <tr>
+                                <td class="sp-date">
+                                    <span class="sp-date-day">{{ day.date|date('M j') }}</span>
+                                    <span class="sp-date-weekday">{{ day.date|date('D') }}</span>
+                                </td>
+                                <td class="right sp-num">{{ day.impressions|number_format }}</td>
+                                <td class="right sp-num">{{ day.clicks|number_format }}</td>
+                                <td class="right sp-num">{{ day.dismisses|number_format }}</td>
+                                <td class="sp-bar-cell">
+                                    <div class="sp-mini-bar">
+                                        <div class="sp-mini-bar-track">
+                                            <div class="sp-mini-bar-fill" style="width: {{ (day.impressions / maxImpressions * 100)|round }}%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {# Top Performing Notifications #}
+        <div id="sp-top-section">
+            {% if stats.topNotifications|length %}
+                <div class="sp-panel">
+                    <div class="sp-panel__header">
+                        <h2 class="sp-panel__title">{{ 'Top Performing Notifications'|t('social-proof') }}</h2>
+                    </div>
+
+                    <div class="sp-table-wrap">
+                        <table class="sp-table" id="sp-top-table">
+                            <thead>
+                                <tr>
+                                    <th>{{ 'Notification'|t('social-proof') }}</th>
+                                    <th class="right">{{ 'Impressions'|t('social-proof') }}</th>
+                                    <th class="right">{{ 'Clicks'|t('social-proof') }}</th>
+                                    <th class="right">{{ 'CTR'|t('social-proof') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in stats.topNotifications %}
+                                    <tr>
+                                        <td class="sp-notification-id">#{{ item.notificationId }}</td>
+                                        <td class="right sp-num">{{ item.impressions|number_format }}</td>
+                                        <td class="right sp-num">{{ item.clicks|number_format }}</td>
+                                        <td class="right sp-num sp-ctr-val">{{ item.ctr }}%</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+    {# Stats data endpoint for AJAX #}
+    {% js %}
+        window.spStatsConfig = {
+            dataUrl: '{{ actionUrl('social-proof/settings/stats-data') }}',
+            commerceInstalled: {{ commerceInstalled ? 'true' : 'false' }},
+        };
+    {% endjs %}
+    {% do view.registerJsFile(view.assetManager.getPublishedUrl('@anvildev/socialproof/resources/cp', true) ~ '/js/social-proof-stats.js') %}
+
+{% endblock %}

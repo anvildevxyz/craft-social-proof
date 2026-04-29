@@ -1,0 +1,64 @@
+{
+    "name": "anvildev/craft-social-proof",
+    "description": "Conversion messaging for Craft CMS — social proof toast notifications and behavior-triggered popups/modals with Craft-native targeting.",
+    "version": "1.0.0",
+    "type": "craft-plugin",
+    "license": "proprietary",
+    "keywords": [
+        "craft",
+        "cms",
+        "craftcms",
+        "social-proof",
+        "notifications",
+        "commerce",
+        "conversions",
+        "fomo"
+    ],
+    "authors": [
+        {
+            "name": "Anvil Dev",
+            "homepage": "https://anvildev.com"
+        }
+    ],
+    "support": {
+        "email": "support@anvildev.com",
+        "docs": "https://github.com/anvildevxyz/craft-social-proof"
+    },
+    "require": {
+        "php": "^8.2",
+        "craftcms/cms": "^5.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.5",
+        "mockery/mockery": "^1.6"
+    },
+    "suggest": {
+        "craftcms/commerce": "^5.0 - Enables purchase notifications and stock warnings"
+    },
+    "autoload": {
+        "psr-4": {
+            "anvildev\\socialproof\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "anvildev\\socialproof\\tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "handle": "social-proof",
+        "name": "Social Proof Notifications",
+        "developer": "Anvil Dev",
+        "developerUrl": "https://anvildev.com",
+        "documentationUrl": "https://github.com/anvildevxyz/craft-social-proof",
+        "changelogUrl": "https://raw.githubusercontent.com/anvildevxyz/craft-social-proof/main/CHANGELOG.md",
+        "class": "anvildev\\socialproof\\Plugin",
+        "installer-name": "social-proof"
+    },
+    "config": {
+        "allow-plugins": {
+            "yiisoft/yii2-composer": true,
+            "craftcms/plugin-installer": true
+        }
+    }
+}

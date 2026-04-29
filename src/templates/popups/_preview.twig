@@ -1,0 +1,30 @@
+{% do view.registerAssetBundle('anvildev\\socialproof\\assets\\PopupFrontendAsset') %}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Popup preview</title>
+  <style>
+    body { margin: 0; padding: 24px; font-family: system-ui, -apple-system, sans-serif; color: #555; background: #fafafa; }
+    .preview-note { color: #888; font-size: 12px; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <p class="preview-note">{{ 'Preview mode — fatigue bypassed, synthetic trigger'|t('social-proof') }}</p>
+  <script id="social-proof-popups-data" type="application/json">
+    {{- {
+      visitorId: 'preview',
+      candidates: [{
+        id: popup.id,
+        priority: popup.priority,
+        layout: popup.layout,
+        trigger: { type: 'page-match' },
+        targeting: [],
+        fatigueRules: [],
+        html: craft.socialProof.renderPopupForPreview(popup),
+      }],
+      eventEndpoint: '/social-proof/popups/api/event'
+    } | json_encode | raw -}}
+  </script>
+</body>
+</html>

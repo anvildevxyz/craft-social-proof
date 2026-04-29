@@ -1,0 +1,14 @@
+{% import '_includes/forms' as forms %}
+
+{{ forms.selectField({
+  label: 'Day range'|t('social-proof'),
+  id: 'dayRange',
+  name: 'dayRange',
+  value: widget.dayRange,
+  options: [
+    { label: 'Last 7 days'|t('social-proof'), value: 7 },
+    { label: 'Last 30 days'|t('social-proof'), value: 30 },
+    { label: 'Last 90 days'|t('social-proof'), value: 90 },
+    { label: 'Last 365 days'|t('social-proof'), value: 365 },
+  ],
+}) }}

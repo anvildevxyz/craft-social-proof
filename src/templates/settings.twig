@@ -1,0 +1,677 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms.twig' as forms %}
+
+{% set title = 'Social Proof Settings'|t('social-proof') %}
+{% set fullPageForm = true %}
+
+{% set tabs = {
+    general: { label: 'General'|t('social-proof'), url: '#general' },
+    appearance: { label: 'Appearance'|t('social-proof'), url: '#appearance' },
+    purchases: { label: 'Purchases'|t('social-proof'), url: '#purchases' },
+    viewers: { label: 'Viewers'|t('social-proof'), url: '#viewers' },
+    stock: { label: 'Stock'|t('social-proof'), url: '#stock' },
+    webhooks: { label: 'Webhooks'|t('social-proof'), url: '#webhooks' },
+    advanced: { label: 'Advanced'|t('social-proof'), url: '#advanced' },
+} %}
+
+{% block content %}
+    <input type="hidden" name="action" value="social-proof/settings/save">
+    {{ redirectInput('social-proof/settings') }}
+
+<style>
+    .sp-field-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-bottom: 24px;
+    }
+    .sp-field-row .field {
+        margin-bottom: 0 !important;
+    }
+    .sp-info-box {
+        background: #f3f7fc;
+        padding: 14px 16px;
+        border-radius: 4px;
+        margin-bottom: 24px;
+        color: #596673;
+        font-size: 14px;
+    }
+</style>
+
+    {# ═══════════════════════════════════════════════════════════════════════════
+       GENERAL
+    ═══════════════════════════════════════════════════════════════════════════ #}
+    <div id="general">
+        {{ forms.lightswitchField({
+            label: 'Enable Social Proof'|t('social-proof'),
+            instructions: 'Turn notifications on or off globally.'|t('social-proof'),
+            id: 'enabled',
+            name: 'enabled',
+            on: settings.enabled
+        }) }}
+
+        {{ forms.textField({
+            label: 'Max Notifications Per Session'|t('social-proof'),
+            instructions: 'Maximum number of notifications to show each visitor per session.'|t('social-proof'),
+            id: 'maxNotificationsPerSession',
+            name: 'maxNotificationsPerSession',
+            value: settings.maxNotificationsPerSession,
+            type: 'number',
+            min: 1,
+            max: 100
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Demo Mode'|t('social-proof'),
+            instructions: 'Show demo notifications with fake data. Perfect for testing without Commerce or real orders.'|t('social-proof'),
+            id: 'demoMode',
+            name: 'demoMode',
+            on: settings.demoMode,
+            warning: settings.demoMode ? 'Demo mode is enabled. Disable for production.'|t('social-proof') : null
+        }) }}
+
+        {{ forms.lightswitchField({
+            label: 'Popup Demo Mode'|t('social-proof'),
+            instructions: 'When enabled, users with Manage Popups permission see popups on the live site regardless of fatigue rules. Useful for QA. Impressions are still recorded.'|t('social-proof'),
+            id: 'popupDemoMode',
+            name: 'popupDemoMode',
+            on: settings.popupDemoMode,
+            warning: settings.popupDemoMode ? 'Popup demo mode is enabled. Manage Popups users will bypass fatigue rules.'|t('social-proof') : null
+        }) }}
+
+        {{ forms.textField({
+          label: 'Popup event rate limit (per minute per IP)'|t('social-proof'),
+          id: 'popupEventRateLimit',
+          name: 'popupEventRateLimit',
+          value: settings.popupEventRateLimit ?? 60,
+          type: 'number',
+          min: 0,
+          instructions: 'Maximum POSTs to the event endpoint per IP per minute. 0 disables rate limiting.'|t('social-proof'),
+        }) }}
+
+        <hr>
+        <h3>{{ 'Attribution'|t('social-proof') }}</h3>
+        <p class="light">{{ 'Link popup convert events to completed Craft Commerce orders within a lookback window.'|t('social-proof') }}</p>
+
+        {{ forms.lightswitchField({
+            label: 'Enable revenue attribution'|t('social-proof'),
+            id: 'popupAttributionEnabled',
+            name: 'popupAttributionEnabled',
+            on: settings.popupAttributionEnabled,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Attribution window (hours)'|t('social-proof'),
+            instructions: 'How long after a popup convert event an order may still be attributed to it.'|t('social-proof'),
+            id: 'popupAttributionWindowHours',
+            name: 'popupAttributionWindowHours',
+            value: settings.popupAttributionWindowHours,
+            type: 'number',
+            min: 1,
+            max: 720,
+        }) }}
+    </div>
+
+    {# ═══════════════════════════════════════════════════════════════════════════
+       APPEARANCE
+    ═══════════════════════════════════════════════════════════════════════════ #}
+    <div id="appearance" class="hidden">
+        {{ forms.selectField({
+            label: 'Position'|t('social-proof'),
+            instructions: 'Where notifications appear on the screen.'|t('social-proof'),
+            id: 'position',
+            name: 'position',
+            value: settings.position,
+            options: positionOptions
+        }) }}
+
+        <div class="sp-field-row">
+            <div>
+                {{ forms.textField({
+                    label: 'Display Duration'|t('social-proof'),
+                    instructions: 'Seconds to show each notification.'|t('social-proof'),
+                    id: 'displayDuration',
+                    name: 'displayDuration',
+                    value: settings.displayDuration,
+                    type: 'number',
+                    min: 1,
+                    max: 60
+                }) }}
+            </div>
+            <div>
+                {{ forms.textField({
+                    label: 'Delay Between'|t('social-proof'),
+                    instructions: 'Seconds to wait between notifications.'|t('social-proof'),
+                    id: 'delayBetween',
+                    name: 'delayBetween',
+                    value: settings.delayBetween,
+                    type: 'number',
+                    min: 1,
+                    max: 120
+                }) }}
+            </div>
+        </div>
+
+        <div class="sp-field-row">
+            <div>
+                {{ forms.selectField({
+                    label: 'Animation In'|t('social-proof'),
+                    instructions: 'How the notification appears.'|t('social-proof'),
+                    id: 'animationIn',
+                    name: 'animationIn',
+                    value: settings.animationIn,
+                    options: animationOptions.in
+                }) }}
+            </div>
+            <div>
+                {{ forms.selectField({
+                    label: 'Animation Out'|t('social-proof'),
+                    instructions: 'How the notification disappears.'|t('social-proof'),
+                    id: 'animationOut',
+                    name: 'animationOut',
+                    value: settings.animationOut,
+                    options: animationOptions.out
+                }) }}
+            </div>
+        </div>
+
+        <div class="sp-field-row">
+            <div>
+                {{ forms.lightswitchField({
+                    label: 'Show Product Image'|t('social-proof'),
+                    instructions: 'Display product thumbnail in notifications.'|t('social-proof'),
+                    id: 'showProductImage',
+                    name: 'showProductImage',
+                    on: settings.showProductImage
+                }) }}
+            </div>
+            <div>
+                {{ forms.lightswitchField({
+                    label: 'Show Dismiss Button'|t('social-proof'),
+                    instructions: 'Allow users to close notifications.'|t('social-proof'),
+                    id: 'showDismissButton',
+                    name: 'showDismissButton',
+                    on: settings.showDismissButton
+                }) }}
+            </div>
+        </div>
+
+        {{ forms.selectField({
+            label: 'Open Links In'|t('social-proof'),
+            instructions: 'How notification links open when clicked. Custom notifications can override this per notification.'|t('social-proof'),
+            id: 'linkTarget',
+            name: 'linkTarget',
+            value: settings.linkTarget,
+            options: [
+                { label: 'Same Window'|t('social-proof'), value: '' },
+                { label: 'New Window'|t('social-proof'), value: '_blank' },
+            ]
+        }) }}
+    </div>
+
+    {# ═══════════════════════════════════════════════════════════════════════════
+       PURCHASES
+    ═══════════════════════════════════════════════════════════════════════════ #}
+    <div id="purchases" class="hidden">
+        {% if not commerceInstalled %}
+            <div class="sp-info-box">
+                {{ 'Craft Commerce is not installed. Enable Demo Mode above to show sample notifications.'|t('social-proof') }}
+            </div>
+        {% endif %}
+
+        {{ forms.lightswitchField({
+            label: 'Enable Purchase Notifications'|t('social-proof'),
+            instructions: 'Show recent purchase activity to visitors.'|t('social-proof'),
+            id: 'purchaseEnabled',
+            name: 'purchaseEnabled',
+            on: settings.purchaseEnabled
+        }) }}
+
+        <div class="sp-field-row">
+            <div>
+                {{ forms.textField({
+                    label: 'Lookback Hours'|t('social-proof'),
+                    instructions: 'How far back to look for purchases.'|t('social-proof'),
+                    id: 'purchaseLookbackHours',
+                    name: 'purchaseLookbackHours',
+                    value: settings.purchaseLookbackHours,
+                    type: 'number',
+                    min: 1,
+                    max: 168
+                }) }}
+            </div>
+            <div>
+                {{ forms.lightswitchField({
+                    label: 'Anonymize Customer Names'|t('social-proof'),
+                    instructions: 'Only show first name for privacy.'|t('social-proof'),
+                    id: 'anonymizeCustomers',
+                    name: 'anonymizeCustomers',
+                    on: settings.anonymizeCustomers
+                }) }}
+            </div>
+        </div>
+
+        {{ forms.textField({
+            label: 'Purchase Message Template'|t('social-proof'),
+            instructions: 'Use {customer}, {location}, and {product} as placeholders.'|t('social-proof'),
+            id: 'purchaseTemplate',
+            name: 'purchaseTemplate',
+            value: settings.purchaseTemplate
+        }) }}
+
+        {% if commerceInstalled and productTypes|length %}
+            {{ forms.checkboxSelectField({
+                label: 'Excluded Product Types'|t('social-proof'),
+                instructions: 'Product types to exclude from notifications.'|t('social-proof'),
+                id: 'excludedProductTypes',
+                name: 'excludedProductTypes',
+                values: settings.excludedProductTypes,
+                options: productTypes
+            }) }}
+        {% endif %}
+    </div>
+
+    {# ═══════════════════════════════════════════════════════════════════════════
+       VIEWERS
+    ═══════════════════════════════════════════════════════════════════════════ #}
+    <div id="viewers" class="hidden">
+        {{ forms.lightswitchField({
+            label: 'Enable Viewer Count'|t('social-proof'),
+            instructions: 'Show how many people are viewing a page.'|t('social-proof'),
+            id: 'viewersEnabled',
+            name: 'viewersEnabled',
+            on: settings.viewersEnabled
+        }) }}
+
+        {{ forms.selectField({
+            label: 'Viewer Count Mode'|t('social-proof'),
+            instructions: 'How to calculate the viewer count.'|t('social-proof'),
+            id: 'viewersMode',
+            name: 'viewersMode',
+            value: settings.viewersMode,
+            options: viewerModeOptions
+        }) }}
+
+        <div class="sp-field-row">
+            <div>
+                {{ forms.textField({
+                    label: 'Minimum Viewers'|t('social-proof'),
+                    instructions: 'Minimum number to display.'|t('social-proof'),
+                    id: 'viewersMinimum',
+                    name: 'viewersMinimum',
+                    value: settings.viewersMinimum,
+                    type: 'number',
+                    min: 0,
+                    max: 1000
+                }) }}
+            </div>
+            <div>
+                {{ forms.textField({
+                    label: 'Viewer Multiplier'|t('social-proof'),
+                    instructions: 'Multiplier for calculated mode.'|t('social-proof'),
+                    id: 'viewersMultiplier',
+                    name: 'viewersMultiplier',
+                    value: settings.viewersMultiplier,
+                    type: 'number',
+                    min: 1,
+                    max: 10
+                }) }}
+            </div>
+        </div>
+
+        {{ forms.textField({
+            label: 'Viewer Message Template'|t('social-proof'),
+            instructions: 'Use {count} as a placeholder.'|t('social-proof'),
+            id: 'viewersTemplate',
+            name: 'viewersTemplate',
+            value: settings.viewersTemplate
+        }) }}
+    </div>
+
+    {# ═══════════════════════════════════════════════════════════════════════════
+       STOCK
+    ═══════════════════════════════════════════════════════════════════════════ #}
+    <div id="stock" class="hidden">
+        {% if not commerceInstalled %}
+            <div class="sp-info-box">
+                {{ 'Craft Commerce is not installed. Enable Demo Mode above to show sample stock warnings.'|t('social-proof') }}
+            </div>
+        {% endif %}
+
+        {{ forms.lightswitchField({
+            label: 'Enable Stock Warnings'|t('social-proof'),
+            instructions: 'Show low stock warnings for products.'|t('social-proof'),
+            id: 'stockEnabled',
+            name: 'stockEnabled',
+            on: settings.stockEnabled
+        }) }}
+
+        <div class="sp-field-row">
+            <div>
+                {{ forms.textField({
+                    label: 'Stock Threshold'|t('social-proof'),
+                    instructions: 'Show warning when stock is at or below this number.'|t('social-proof'),
+                    id: 'stockThreshold',
+                    name: 'stockThreshold',
+                    value: settings.stockThreshold,
+                    type: 'number',
+                    min: 1,
+                    max: 1000
+                }) }}
+            </div>
+            <div>
+                {{ forms.textField({
+                    label: 'Stock Message Template'|t('social-proof'),
+                    instructions: 'Use {count} and {product} as placeholders.'|t('social-proof'),
+                    id: 'stockTemplate',
+                    name: 'stockTemplate',
+                    value: settings.stockTemplate
+                }) }}
+            </div>
+        </div>
+    </div>
+
+    {# ═══════════════════════════════════════════════════════════════════════════
+       WEBHOOKS
+    ═══════════════════════════════════════════════════════════════════════════ #}
+    <div id="webhooks" class="hidden">
+        <h2>{{ 'Webhooks'|t('social-proof') }}</h2>
+        <p class="light">{{ 'Send signed HTTP POST requests to external endpoints when popup events fire.'|t('social-proof') }}</p>
+
+        {% if settings.webhooks|length %}
+            <table class="data fullwidth">
+                <thead>
+                    <tr>
+                        <th>{{ 'Label'|t('social-proof') }}</th>
+                        <th>{{ 'URL'|t('social-proof') }}</th>
+                        <th>{{ 'Events'|t('social-proof') }}</th>
+                        <th>{{ 'Enabled'|t('social-proof') }}</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for w in settings.webhooks %}
+                        <tr>
+                            <td>{{ w.label }}</td>
+                            <td><code>{{ w.url }}</code></td>
+                            <td>
+                                {% for e in w.events %}<span class="status-label">{{ e }}</span> {% endfor %}
+                                {% set bs = webhookBreakerStates[w.id] ?? null %}
+                                {% if bs and bs.isOpen %}
+                                  {% set mins = (bs.retryInSeconds / 60) | round(0, 'ceil') %}
+                                  <span class="status-label" style="background:#fff4e5; color:#a05a00; border:1px solid #f0c080; margin-left:6px"
+                                        title="{{ 'Auto-paused after {n} consecutive failures. Retrying in ~{m}m. Clear via {cmd}.'|t('social-proof', { n: bs.failures, m: mins, cmd: 'ddev craft clear-caches/data' }) }}">
+                                    {{ 'Auto-paused (~{m}m)'|t('social-proof', { m: mins }) }}
+                                  </span>
+                                {% elseif bs and bs.failures > 0 %}
+                                  <span class="status-label light" style="margin-left:6px"
+                                        title="{{ 'Consecutive delivery failures since the last success.'|t('social-proof') }}">
+                                    {{ '{n} recent failure(s)'|t('social-proof', { n: bs.failures }) }}
+                                  </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                              <span class="webhook-enabled-toggle"
+                                    data-webhook-id="{{ w.id }}"
+                                    data-webhook-label="{{ w.label }}"
+                                    data-webhook-url="{{ w.url }}"
+                                    data-webhook-events="{{ w.events|join(',') }}">
+                                {{ forms.lightswitch({
+                                  name: 'enabled',
+                                  on: w.enabled,
+                                  small: true,
+                                  value: '1',
+                                  offValue: '0',
+                                }) }}
+                              </span>
+                            </td>
+                            <td style="white-space: nowrap">
+                              <details style="display:inline-block; margin-right:6px; vertical-align:middle">
+                                <summary class="btn small">{{ 'Show secret'|t('social-proof') }}</summary>
+                                <div style="margin-top:6px">
+                                  <code style="user-select:all; word-break:break-all">{{ w.secret }}</code>
+                                </div>
+                              </details>
+                              <button type="button"
+                                      class="btn small webhook-edit-btn"
+                                      data-webhook-id="{{ w.id }}">{{ 'Edit'|t('social-proof') }}</button>
+                              <button type="button"
+                                      class="btn small webhook-rotate-btn"
+                                      data-webhook-id="{{ w.id }}"
+                                      title="{{ 'Generate a new signing secret. Existing receivers must be updated.'|t('social-proof') }}">{{ 'Rotate'|t('social-proof') }}</button>
+                              <button type="button"
+                                      class="btn small error webhook-delete-btn"
+                                      data-webhook-id="{{ w.id }}"
+                                      data-webhook-label="{{ w.label }}">{{ 'Delete'|t('social-proof') }}</button>
+                            </td>
+                        </tr>
+                        <tr id="webhook-edit-row-{{ w.id }}" class="webhook-edit-row" hidden>
+                            <td colspan="5" style="background:#f6f7f8; padding:14px 18px">
+                                <form method="post" style="max-width:640px">
+                                    {{ csrfInput() }}
+                                    {{ actionInput('social-proof/settings/save-webhook') }}
+                                    {{ redirectInput('social-proof/settings') }}
+                                    {{ hiddenInput('id', w.id) }}
+                                    {{ forms.textField({ label: 'Label'|t('social-proof'), name: 'label', value: w.label, required: true }) }}
+                                    {{ forms.textField({ label: 'URL'|t('social-proof'), name: 'url', type: 'url', value: w.url, required: true }) }}
+                                    {{ forms.checkboxGroupField({
+                                        label: 'Events'|t('social-proof'),
+                                        name: 'events',
+                                        required: true,
+                                        values: w.events,
+                                        options: [
+                                            { label: 'popup.impression', value: 'popup.impression' },
+                                            { label: 'popup.click', value: 'popup.click' },
+                                            { label: 'popup.dismiss', value: 'popup.dismiss' },
+                                            { label: 'popup.convert', value: 'popup.convert' },
+                                        ],
+                                    }) }}
+                                    {{ forms.lightswitchField({ label: 'Enabled'|t('social-proof'), name: 'enabled', on: w.enabled }) }}
+                                    <button class="btn submit">{{ 'Save changes'|t('social-proof') }}</button>
+                                    <button type="button" class="btn webhook-edit-cancel" data-webhook-id="{{ w.id }}">{{ 'Cancel'|t('social-proof') }}</button>
+                                </form>
+
+                                {% set deliveries = webhookDeliveries[w.id] ?? [] %}
+                                <details style="margin-top:18px">
+                                    <summary>{{ 'Recent deliveries ({n})'|t('social-proof', { n: deliveries|length }) }}</summary>
+                                    {% if deliveries|length %}
+                                        <table class="data fullwidth" style="margin-top:8px">
+                                            <thead>
+                                                <tr>
+                                                    <th style="width:160px">{{ 'Dispatched'|t('social-proof') }}</th>
+                                                    <th style="width:120px">{{ 'Event'|t('social-proof') }}</th>
+                                                    <th style="width:90px">{{ 'Status'|t('social-proof') }}</th>
+                                                    <th>{{ 'Result'|t('social-proof') }}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for d in deliveries %}
+                                                    <tr>
+                                                        <td><code>{{ d.dispatchedAt }}</code></td>
+                                                        <td><code>{{ d.event }}</code></td>
+                                                        <td>
+                                                            {% if d.statusCode is null %}
+                                                                <span class="status-label" style="background:#fee; color:#a00">{{ 'transport'|t('social-proof') }}</span>
+                                                            {% elseif d.statusCode < 300 %}
+                                                                <span class="status-label" style="background:#e8f5e9; color:#1b5e20">{{ d.statusCode }}</span>
+                                                            {% else %}
+                                                                <span class="status-label" style="background:#fee; color:#a00">{{ d.statusCode }}</span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td><code style="word-break:break-all; font-size:11px">{% if d.transportError %}{{ d.transportError }}{% elseif d.responseSnippet %}{{ d.responseSnippet }}{% endif %}</code></td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    {% else %}
+                                        <p class="light" style="margin-top:8px">{{ 'No deliveries yet.'|t('social-proof') }}</p>
+                                    {% endif %}
+                                </details>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="light">{{ 'No webhooks configured yet.'|t('social-proof') }}</p>
+        {% endif %}
+
+        {% if settings.webhooks|length %}
+          {% js %}
+            (function() {
+              function postAction(action, params) {
+                var body = new URLSearchParams();
+                body.set(window.Craft.csrfTokenName, window.Craft.csrfTokenValue);
+                Object.keys(params).forEach(function(k) {
+                  var v = params[k];
+                  if (Array.isArray(v)) {
+                    v.forEach(function(item) { body.append(k, item); });
+                  } else if (v !== undefined && v !== null) {
+                    body.set(k, v);
+                  }
+                });
+                return fetch(window.Craft.getActionUrl(action), {
+                  method: 'POST',
+                  headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                  body: body,
+                  credentials: 'include',
+                });
+              }
+
+              document.querySelectorAll('.webhook-enabled-toggle').forEach(function(wrap) {
+                var ls = wrap.querySelector('.lightswitch');
+                if (!ls) return;
+                ls.addEventListener('change', function() {
+                  var hidden = ls.querySelector('input[name="enabled"]');
+                  var events = (wrap.dataset.webhookEvents || '').split(',').filter(Boolean);
+                  postAction('social-proof/settings/save-webhook', {
+                    'id': wrap.dataset.webhookId,
+                    'label': wrap.dataset.webhookLabel,
+                    'url': wrap.dataset.webhookUrl,
+                    'events[]': events,
+                    'enabled': hidden.value === '1' ? '1' : '0',
+                  }).then(function(r) {
+                    if (!r.ok && r.status !== 302) console.error('Webhook toggle failed', r.status);
+                  });
+                });
+              });
+
+              document.querySelectorAll('.webhook-rotate-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                  if (!confirm(Craft.t('social-proof', 'Rotate signing secret? Existing receivers must be updated.'))) return;
+                  postAction('social-proof/settings/rotate-webhook-secret', {
+                    id: btn.dataset.webhookId,
+                  }).then(function(r) {
+                    if (r.ok || r.status === 302) location.reload();
+                    else console.error('Webhook rotate failed', r.status);
+                  });
+                });
+              });
+
+              document.querySelectorAll('.webhook-delete-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                  var label = btn.dataset.webhookLabel || btn.dataset.webhookId;
+                  if (!confirm(Craft.t('social-proof', 'Delete webhook subscription "{label}"?', { label: label }))) return;
+                  postAction('social-proof/settings/delete-webhook', {
+                    id: btn.dataset.webhookId,
+                  }).then(function(r) {
+                    if (r.ok || r.status === 302) location.reload();
+                    else console.error('Webhook delete failed', r.status);
+                  });
+                });
+              });
+
+              document.querySelectorAll('.webhook-edit-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                  var row = document.getElementById('webhook-edit-row-' + btn.dataset.webhookId);
+                  if (row) row.hidden = !row.hidden;
+                });
+              });
+              document.querySelectorAll('.webhook-edit-cancel').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                  var row = document.getElementById('webhook-edit-row-' + btn.dataset.webhookId);
+                  if (row) row.hidden = true;
+                });
+              });
+            })();
+          {% endjs %}
+        {% endif %}
+
+        <hr>
+        <h3>{{ 'Add webhook'|t('social-proof') }}</h3>
+        <form method="post">
+            {{ csrfInput() }}
+            {{ actionInput('social-proof/settings/save-webhook') }}
+            {{ redirectInput('social-proof/settings') }}
+            {{ forms.textField({ label: 'Label'|t('social-proof'), name: 'label', required: true }) }}
+            {{ forms.textField({ label: 'URL'|t('social-proof'), name: 'url', type: 'url', required: true, placeholder: 'https://example.com/webhook' }) }}
+            {{ forms.checkboxGroupField({
+                label: 'Events'|t('social-proof'),
+                name: 'events',
+                required: true,
+                options: [
+                    { label: 'popup.impression', value: 'popup.impression' },
+                    { label: 'popup.click', value: 'popup.click' },
+                    { label: 'popup.dismiss', value: 'popup.dismiss' },
+                    { label: 'popup.convert', value: 'popup.convert' },
+                ],
+            }) }}
+            {{ forms.lightswitchField({ label: 'Enabled'|t('social-proof'), name: 'enabled', on: true }) }}
+            <p class="light">{{ 'A 32-character signing secret is generated automatically. Receivers must verify the HMAC-SHA256 signature in the X-SocialProof-Signature-256 header.'|t('social-proof') }}</p>
+            <button class="btn submit">{{ 'Save webhook'|t('social-proof') }}</button>
+        </form>
+    </div>
+
+    {# ═══════════════════════════════════════════════════════════════════════════
+       ADVANCED (A/B Testing + URL Targeting)
+    ═══════════════════════════════════════════════════════════════════════════ #}
+    <div id="advanced" class="hidden">
+        <h2>{{ 'A/B Testing'|t('social-proof') }}</h2>
+
+        {{ forms.lightswitchField({
+            label: 'Enable A/B Testing'|t('social-proof'),
+            instructions: 'Only show notifications to a percentage of visitors for conversion testing.'|t('social-proof'),
+            id: 'abTestingEnabled',
+            name: 'abTestingEnabled',
+            on: settings.abTestingEnabled
+        }) }}
+
+        {{ forms.textField({
+            label: 'Test Percentage'|t('social-proof'),
+            instructions: 'Percentage of visitors who will see notifications (1-99).'|t('social-proof'),
+            id: 'abTestPercentage',
+            name: 'abTestPercentage',
+            value: settings.abTestPercentage,
+            type: 'number',
+            min: 1,
+            max: 99
+        }) }}
+
+        <hr>
+
+        <h2>{{ 'URL Targeting'|t('social-proof') }}</h2>
+
+        {{ forms.textareaField({
+            label: 'Include URL Patterns'|t('social-proof'),
+            instructions: 'Only show on URLs matching these patterns (one per line). Leave empty for all pages. Use * as wildcard.'|t('social-proof'),
+            id: 'includedUrlPatterns',
+            name: 'includedUrlPatterns',
+            value: settings.includedUrlPatterns|join("\n"),
+            rows: 3,
+            placeholder: '/products/*
+/shop/*'
+        }) }}
+
+        {{ forms.textareaField({
+            label: 'Exclude URL Patterns'|t('social-proof'),
+            instructions: 'Never show on URLs matching these patterns (one per line). Use * as wildcard.'|t('social-proof'),
+            id: 'excludedUrlPatterns',
+            name: 'excludedUrlPatterns',
+            value: settings.excludedUrlPatterns|join("\n"),
+            rows: 3,
+            placeholder: '/checkout/*
+/account/*'
+        }) }}
+    </div>
+
+{% endblock %}

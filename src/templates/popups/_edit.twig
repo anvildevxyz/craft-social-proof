@@ -1,0 +1,300 @@
+{% extends "_layouts/cp" %}
+{% import '_includes/forms' as forms %}
+
+{% set crumbs = [{ label: 'Social Proof'|t('social-proof'), url: url('social-proof') }, { label: 'Popups'|t('social-proof'), url: url('social-proof/popups') }] %}
+
+{% set fullPageForm = true %}
+{% set saveShortcutRedirect = '{cpEditUrl}' %}
+
+{% block actionButton %}
+  <input type="submit" class="btn submit" value="{{ 'Save'|t('app') }}">
+{% endblock %}
+
+{% block content %}
+  <input type="hidden" name="action" value="social-proof/popups/save">
+  {{ redirectInput('social-proof/popups') }}
+  {% if popup.id %}<input type="hidden" name="popupId" value="{{ popup.id }}">{% endif %}
+
+  {{ forms.textField({
+    label: 'Title'|t('app'),
+    id: 'title',
+    name: 'title',
+    value: popup.title,
+    required: true,
+    errors: popup.getErrors('title'),
+  }) }}
+
+  {{ forms.selectField({
+    label: 'Layout'|t('social-proof'),
+    id: 'layout',
+    name: 'layout',
+    value: popup.layout ?? 'announcement',
+    options: [
+      { label: 'Announcement'|t('social-proof'), value: 'announcement' },
+      { label: 'Newsletter'|t('social-proof'), value: 'newsletter' },
+      { label: 'Discount'|t('social-proof'), value: 'discount' },
+      { label: 'Bottom bar'|t('social-proof'), value: 'bottom-bar' },
+    ],
+  }) }}
+
+  {{ forms.selectField({
+    label: 'Trigger'|t('social-proof'),
+    id: 'triggerType',
+    name: 'triggerType',
+    value: popup.trigger.type ?? 'time-on-page',
+    options: [
+      { label: 'Time on page'|t('social-proof'), value: 'time-on-page' },
+      { label: 'Exit intent'|t('social-proof'), value: 'exit-intent' },
+      { label: 'Scroll depth'|t('social-proof'), value: 'scroll-depth' },
+      { label: 'Element click'|t('social-proof'), value: 'element-click' },
+      { label: 'Page match'|t('social-proof'), value: 'page-match' },
+      { label: 'User state'|t('social-proof'), value: 'user-state' },
+    ],
+  }) }}
+
+  <div data-show-when-trigger="time-on-page">
+    {{ forms.textField({
+      label: 'Seconds'|t('social-proof'),
+      id: 'triggerSeconds',
+      name: 'triggerSeconds',
+      value: popup.trigger.seconds ?? 10,
+      type: 'number',
+      min: 0,
+    }) }}
+  </div>
+
+  <div data-show-when-trigger="scroll-depth">
+    {{ forms.textField({
+      label: 'Scroll percentage'|t('social-proof'),
+      id: 'triggerScrollPercent',
+      name: 'triggerScrollPercent',
+      value: popup.trigger.percent ?? 50,
+      type: 'number',
+      min: 0,
+      max: 100,
+    }) }}
+  </div>
+
+  <div data-show-when-trigger="element-click">
+    {{ forms.textField({
+      label: 'CSS selector'|t('social-proof'),
+      id: 'triggerSelector',
+      name: 'triggerSelector',
+      value: popup.trigger.selector ?? '',
+      placeholder: '.promo-btn, #signup',
+    }) }}
+  </div>
+
+  <div data-show-when-trigger="exit-intent page-match user-state">
+    <p class="light">{{ 'This trigger has no extra parameters.'|t('social-proof') }}</p>
+  </div>
+
+  <hr>
+  <h2>{{ 'Content'|t('social-proof') }}</h2>
+
+  {{ forms.textField({
+    label: 'Headline'|t('social-proof'),
+    id: 'headline',
+    name: 'headline',
+    value: popup.layoutSettings.headline ?? '',
+  }) }}
+
+  {{ forms.textareaField({
+    label: 'Body'|t('social-proof'),
+    id: 'body',
+    name: 'body',
+    value: popup.layoutSettings.body ?? '',
+  }) }}
+
+  {{ forms.textField({
+    label: 'CTA text'|t('social-proof'),
+    id: 'ctaText',
+    name: 'ctaText',
+    value: popup.layoutSettings.ctaText ?? '',
+  }) }}
+
+  {{ forms.textField({
+    label: 'CTA URL'|t('social-proof'),
+    id: 'ctaUrl',
+    name: 'ctaUrl',
+    value: popup.layoutSettings.ctaUrl ?? '',
+  }) }}
+
+  <div data-show-when-layout="newsletter">
+    <hr>
+    <h2>{{ 'Newsletter-specific'|t('social-proof') }}</h2>
+    {{ forms.textField({
+      label: 'Email placeholder'|t('social-proof'),
+      id: 'emailPlaceholder',
+      name: 'emailPlaceholder',
+      value: popup.layoutSettings.emailPlaceholder ?? 'you@example.com',
+    }) }}
+    {{ forms.textField({
+      label: 'Submit button text'|t('social-proof'),
+      id: 'submitText',
+      name: 'submitText',
+      value: popup.layoutSettings.submitText ?? 'Subscribe',
+    }) }}
+    {{ forms.textField({
+      label: 'Webhook URL'|t('social-proof'),
+      id: 'webhookUrl',
+      name: 'webhookUrl',
+      value: popup.layoutSettings.webhookUrl ?? '',
+      instructions: 'The submitted email + popup id will be POSTed here as JSON.'|t('social-proof'),
+    }) }}
+    {{ forms.textField({
+      label: 'Success text'|t('social-proof'),
+      id: 'successText',
+      name: 'successText',
+      value: popup.layoutSettings.successText ?? "Thanks — you're in!",
+    }) }}
+  </div>
+
+  <div data-show-when-layout="discount">
+    <hr>
+    <h2>{{ 'Discount-specific'|t('social-proof') }}</h2>
+    {{ forms.textField({
+      label: 'Discount code'|t('social-proof'),
+      id: 'code',
+      name: 'code',
+      value: popup.layoutSettings.code ?? '',
+    }) }}
+    {{ forms.textField({
+      label: 'Copy button text'|t('social-proof'),
+      id: 'copyButtonText',
+      name: 'copyButtonText',
+      value: popup.layoutSettings.copyButtonText ?? 'Copy',
+    }) }}
+    {{ forms.checkboxField({
+      label: 'Enable copy button'|t('social-proof'),
+      id: 'enableCopy',
+      name: 'enableCopy',
+      checked: popup.layoutSettings.enableCopy ?? true,
+    }) }}
+  </div>
+
+  <hr>
+  <h2>{{ 'Targeting'|t('social-proof') }}</h2>
+
+  {{ forms.textareaField({
+    label: 'Include URL patterns'|t('social-proof'),
+    id: 'includeUrlPatterns',
+    name: 'includeUrlPatterns',
+    value: (popup.targeting.urlPatterns.include ?? []) | join("\n"),
+    instructions: 'One glob pattern per line. Empty = match all URLs. Example: /products/*'|t('social-proof'),
+    rows: 4,
+  }) }}
+
+  {{ forms.textareaField({
+    label: 'Exclude URL patterns'|t('social-proof'),
+    id: 'excludeUrlPatterns',
+    name: 'excludeUrlPatterns',
+    value: (popup.targeting.urlPatterns.exclude ?? []) | join("\n"),
+    instructions: 'One glob pattern per line. Example: /admin/*'|t('social-proof'),
+    rows: 4,
+  }) }}
+
+  {{ forms.selectField({
+    label: 'Sections'|t('social-proof'),
+    id: 'sections',
+    name: 'sections[]',
+    options: sectionOptions,
+    multi: true,
+    values: popup.targeting.sections ?? [],
+    instructions: 'Only fire on entries in these sections. Empty = all sections.'|t('social-proof'),
+  }) }}
+
+  {{ forms.elementSelectField({
+    label: 'Specific entries'|t('social-proof'),
+    id: 'entryIds',
+    name: 'entryIds',
+    elements: selectedEntries,
+    elementType: 'craft\\elements\\Entry',
+    selectionLabel: 'Add an entry'|t('social-proof'),
+    instructions: 'Only fire on these specific entries. Narrows the section filter if both set.'|t('social-proof'),
+  }) }}
+
+  {{ forms.selectField({
+    label: 'User groups'|t('social-proof'),
+    id: 'userGroups',
+    name: 'userGroups[]',
+    options: groupOptions,
+    multi: true,
+    values: popup.targeting.userGroups ?? [],
+    instructions: 'Only fire for visitors in these groups. Empty = any visitor.'|t('social-proof'),
+  }) }}
+
+  {{ forms.radioGroupField({
+    label: 'Logged-in state'|t('social-proof'),
+    id: 'loggedIn',
+    name: 'loggedIn',
+    value: currentLoggedIn,
+    options: [
+      { label: 'Either'|t('social-proof'), value: 'either' },
+      { label: 'Logged in'|t('social-proof'), value: 'yes' },
+      { label: 'Logged out'|t('social-proof'), value: 'no' },
+    ],
+  }) }}
+
+  <hr>
+  <h2>{{ 'Priority & Fatigue'|t('social-proof') }}</h2>
+
+  {{ forms.textField({
+    label: 'Priority (higher wins)'|t('social-proof'),
+    id: 'priority',
+    name: 'priority',
+    value: popup.priority ?? 50,
+    type: 'number',
+    min: 0,
+    max: 100,
+  }) }}
+
+  {{ forms.textField({
+    label: 'Max impressions per visitor'|t('social-proof'),
+    id: 'maxPerVisitor',
+    name: 'maxPerVisitor',
+    value: popup.fatigueRules.maxPerVisitor ?? 3,
+    type: 'number',
+  }) }}
+
+  {{ forms.textField({
+    label: 'Min hours between shows'|t('social-proof'),
+    id: 'minHoursBetween',
+    name: 'minHoursBetween',
+    value: popup.fatigueRules.minHoursBetween ?? 24,
+    type: 'number',
+  }) }}
+
+  {{ forms.checkboxField({
+    label: 'Stop showing after dismiss'|t('social-proof'),
+    id: 'stopAfterDismiss',
+    name: 'stopAfterDismiss',
+    checked: popup.fatigueRules.stopAfterDismiss ?? true,
+  }) }}
+
+  {{ forms.checkboxField({
+    label: 'Stop showing after conversion'|t('social-proof'),
+    id: 'stopAfterConvert',
+    name: 'stopAfterConvert',
+    checked: popup.fatigueRules.stopAfterConvert ?? true,
+  }) }}
+
+{% if popup.id %}
+  <hr>
+  <h2>{{ 'Preview'|t('social-proof') }}</h2>
+  <div class="smart-popup-preview">
+    <div class="smart-popup-preview__controls" style="margin-bottom: 12px; display: flex; gap: 6px; flex-wrap: wrap;">
+      <button type="button" class="btn" data-preview-width="1200">{{ 'Desktop'|t('social-proof') }}</button>
+      <button type="button" class="btn" data-preview-width="768">{{ 'Tablet'|t('social-proof') }}</button>
+      <button type="button" class="btn" data-preview-width="375">{{ 'Mobile'|t('social-proof') }}</button>
+      <button type="button" class="btn" data-preview-refresh>↻ {{ 'Refresh'|t('social-proof') }}</button>
+    </div>
+    <iframe
+      data-preview-iframe
+      src="{{ url('social-proof/popups/' ~ popup.id ~ '/preview') }}"
+      style="display: block; width: 100%; max-width: 1200px; height: 600px; border: 1px solid #ccc; border-radius: 4px; background: #fff;"
+      title="{{ 'Popup preview'|t('social-proof') }}"
+    ></iframe>
+  </div>
+{% endif %}
+{% endblock %}

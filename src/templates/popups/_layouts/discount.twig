@@ -1,0 +1,29 @@
+{# Discount popup layout #}
+{# Variables: popup, settings #}
+
+<div class="smart-popup smart-popup--discount" role="dialog" aria-modal="true" aria-labelledby="smart-popup-{{ popup.id }}-headline" data-popup-id="{{ popup.id }}">
+  <button type="button" class="smart-popup__dismiss" aria-label="{{ 'Dismiss'|t('social-proof') }}" data-smartpopup-action="dismiss">&times;</button>
+
+  {% if settings.headline is defined and settings.headline %}
+    <h2 class="smart-popup__headline" id="smart-popup-{{ popup.id }}-headline">{{ settings.headline }}</h2>
+  {% endif %}
+
+  {% if settings.body is defined and settings.body %}
+    <p class="smart-popup__body">{{ settings.body }}</p>
+  {% endif %}
+
+  {% if settings.code is defined and settings.code %}
+    <div class="smart-popup__code-wrapper">
+      <code class="smart-popup__code" data-smart-popup-code>{{ settings.code }}</code>
+      {% if settings.enableCopy ?? true %}
+        <button type="button" class="smart-popup__copy-btn" data-smart-popup-copy aria-label="{{ 'Copy code'|t('social-proof') }} {{ settings.code }}">
+          <span class="smart-popup__copy-label">{{ settings.copyButtonText ?? ('Copy'|t('social-proof')) }}</span>
+        </button>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  {% if settings.ctaText is defined and settings.ctaText and settings.ctaUrl is defined and settings.ctaUrl %}
+    <a class="smart-popup__cta" href="{{ settings.ctaUrl }}" data-smartpopup-action="click">{{ settings.ctaText }}</a>
+  {% endif %}
+</div>

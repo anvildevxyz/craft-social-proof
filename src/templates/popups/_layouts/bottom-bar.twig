@@ -1,0 +1,14 @@
+{# Bottom-bar popup layout — non-modal #}
+{# Variables: popup, settings #}
+
+<div class="smart-popup smart-popup--bottom-bar" role="region" aria-label="{{ 'Announcement'|t('social-proof') }}" data-popup-id="{{ popup.id }}">
+  {% if settings.body is defined and settings.body %}
+    <span class="smart-popup__bar-message">{{ settings.body }}</span>
+  {% endif %}
+
+  {% if settings.ctaText is defined and settings.ctaText and settings.ctaUrl is defined and settings.ctaUrl %}
+    <a class="smart-popup__cta smart-popup__bar-cta" href="{{ settings.ctaUrl }}" data-smartpopup-action="click">{{ settings.ctaText }}</a>
+  {% endif %}
+
+  <button type="button" class="smart-popup__dismiss smart-popup__bar-dismiss" aria-label="{{ 'Dismiss'|t('social-proof') }}" data-smartpopup-action="dismiss">&times;</button>
+</div>

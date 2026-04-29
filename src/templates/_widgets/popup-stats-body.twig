@@ -1,0 +1,30 @@
+{% if rows is empty %}
+  <p class="light">{{ 'No popup events in the last'|t('social-proof') }} {{ dayRange }} {{ 'days'|t('social-proof') }}.</p>
+{% else %}
+  <table class="data fullwidth">
+    <thead>
+      <tr>
+        <th>{{ 'Popup'|t('social-proof') }}</th>
+        <th>{{ 'Imp'|t('social-proof') }}</th>
+        <th>{{ 'Clk'|t('social-proof') }}</th>
+        <th>{{ 'Dis'|t('social-proof') }}</th>
+        <th>{{ 'Cnv'|t('social-proof') }}</th>
+        <th>CTR</th>
+        <th>{{ 'Revenue'|t('social-proof') }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        <tr>
+          <td>{{ popupTitles[row.popupId] ?? '(deleted)'|t('social-proof') }}</td>
+          <td>{{ row.impressions }}</td>
+          <td>{{ row.clicks }}</td>
+          <td>{{ row.dismisses }}</td>
+          <td>{{ row.converts }}</td>
+          <td>{{ row.impressions > 0 ? (row.clicks / row.impressions * 100) | round(1) ~ '%' : '—' }}</td>
+          <td>{{ row.revenue|number_format(2) }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endif %}

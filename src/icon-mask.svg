@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <g fill="currentColor">
+    <!-- Bell body -->
+    <path d="M50 12c-14 0-25 11-25 25v15c0 5-5 10-10 10h70c-5 0-10-5-10-10V37c0-14-11-25-25-25z"/>
+    <!-- Bell clapper -->
+    <path d="M42 67v3c0 4.4 3.6 8 8 8s8-3.6 8-8v-3H42z"/>
+    <!-- Notification dot -->
+    <circle cx="70" cy="25" r="10"/>
+  </g>
+</svg>

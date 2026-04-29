@@ -1,0 +1,236 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms.twig' as forms %}
+
+{% set fullPageForm = true %}
+
+{% block actionButton %}
+    {% if isMultiSite and availableSites|length > 1 %}
+        <div class="site-selector">
+            <div class="btn menubtn" data-icon="world">{{ currentSiteName }}</div>
+            <div class="menu">
+                <ul class="padded">
+                    {% for siteItem in availableSites %}
+                        <li>
+                            <a href="{{ siteItem.url }}" {% if siteItem.selected %}class="sel"{% endif %}>
+                                {{ siteItem.label }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <input type="hidden" name="action" value="social-proof/notifications/save">
+    {{ redirectInput('social-proof/notifications') }}
+
+    {% if not isNew %}
+        <input type="hidden" name="notificationId" value="{{ notification.id }}">
+    {% endif %}
+    <input type="hidden" name="siteId" value="{{ currentSiteId }}">
+
+    {{ forms.lightswitchField({
+        label: 'Enabled'|t('social-proof'),
+        id: 'enabled',
+        name: 'enabled',
+        on: notification.enabled ?? true,
+        first: true
+    }) }}
+
+    {% if isMultiSite %}
+        {{ forms.selectField({
+            label: 'Propagation Method'|t('social-proof'),
+            instructions: 'Which sites should this notification be saved to?'|t('social-proof'),
+            warning: not isNew and notification.propagationMethod != 'none' ? 'Changing this may result in data loss.'|t('social-proof') : null,
+            id: 'propagationMethod',
+            name: 'propagationMethod',
+            value: notification.propagationMethod ?? 'all',
+            options: propagationOptions
+        }) }}
+    {% endif %}
+
+    {{ forms.textField({
+        label: 'Title'|t('social-proof'),
+        instructions: 'Internal name to identify this notification.'|t('social-proof'),
+        id: 'title',
+        name: 'title',
+        value: notification.title,
+        required: true,
+        errors: notification.getErrors('title')
+    }) }}
+
+    {# Type-specific settings (per-site) #}
+    <div id="type-settings">
+        {# Custom type settings #}
+        <div class="type-panel" data-type="custom">
+            <hr>
+            <h2>{{ 'Custom Notification Settings'|t('social-proof') }}</h2>
+
+            {{ forms.textareaField({
+                label: 'Message'|t('social-proof'),
+                instructions: 'The message to display.'|t('social-proof'),
+                id: 'settings-message',
+                name: 'settings[message]',
+                value: notification.settings.message ?? '',
+                rows: 3
+            }) }}
+
+            {% set linkType = notification.settings.linkType ?? (notification.settings.url is defined and notification.settings.url ? 'url' : '') %}
+            {% set linkUrl = notification.settings.linkUrl ?? notification.settings.url ?? '' %}
+
+            {{ forms.selectField({
+                label: 'Link Type'|t('social-proof'),
+                instructions: 'Choose how to link this notification.'|t('social-proof'),
+                id: 'settings-linkType',
+                name: 'settings[linkType]',
+                value: linkType,
+                options: [
+                    { label: 'No Link'|t('social-proof'), value: '' },
+                    { label: 'URL'|t('social-proof'), value: 'url' },
+                    { label: 'Entry'|t('social-proof'), value: 'entry' },
+                    { label: 'Asset'|t('social-proof'), value: 'asset' },
+                ]
+            }) }}
+
+            <div id="link-url-field"{% if linkType != 'url' %} class="hidden"{% endif %}>
+                {{ forms.textField({
+                    label: 'URL'|t('social-proof'),
+                    instructions: 'The URL to link to.'|t('social-proof'),
+                    id: 'settings-linkUrl',
+                    name: 'settings[linkUrl]',
+                    value: linkUrl
+                }) }}
+            </div>
+
+            <div id="link-entry-field"{% if linkType != 'entry' %} class="hidden"{% endif %}>
+                {{ forms.elementSelectField({
+                    label: 'Entry'|t('social-proof'),
+                    instructions: 'Select an entry to link to.'|t('social-proof'),
+                    id: 'settings-linkEntry',
+                    name: 'settings[linkEntry]',
+                    elementType: 'craft\\elements\\Entry',
+                    elements: linkedEntry ? [linkedEntry] : [],
+                    limit: 1,
+                    modalStorageKey: 'socialproof.linkEntry'
+                }) }}
+            </div>
+
+            <div id="link-asset-field"{% if linkType != 'asset' %} class="hidden"{% endif %}>
+                {{ forms.elementSelectField({
+                    label: 'Asset'|t('social-proof'),
+                    instructions: 'Select an asset to link to.'|t('social-proof'),
+                    id: 'settings-linkAsset',
+                    name: 'settings[linkAsset]',
+                    elementType: 'craft\\elements\\Asset',
+                    elements: linkedAsset ? [linkedAsset] : [],
+                    limit: 1,
+                    modalStorageKey: 'socialproof.linkAsset'
+                }) }}
+            </div>
+
+            <div id="link-target-field"{% if not linkType %} class="hidden"{% endif %}>
+                {{ forms.selectField({
+                    label: 'Open In'|t('social-proof'),
+                    instructions: 'How to open the link.'|t('social-proof'),
+                    id: 'settings-linkTarget',
+                    name: 'settings[linkTarget]',
+                    value: notification.settings.linkTarget ?? '',
+                    options: [
+                        { label: 'Same Window'|t('social-proof'), value: '' },
+                        { label: 'New Window'|t('social-proof'), value: '_blank' },
+                    ]
+                }) }}
+            </div>
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="field">
+        {{ forms.selectField({
+            label: 'Type'|t('social-proof'),
+            instructions: 'The type of notification to display.'|t('social-proof'),
+            id: 'type',
+            name: 'type',
+            value: notification.type,
+            options: typeOptions,
+            required: true
+        }) }}
+    </div>
+
+    <h2>{{ 'Display Settings'|t('social-proof') }}</h2>
+
+    <div class="field">
+        {{ forms.selectField({
+            label: 'Position'|t('social-proof'),
+            id: 'position',
+            name: 'position',
+            value: notification.position,
+            options: positionOptions
+        }) }}
+    </div>
+
+    <div class="flex">
+        <div class="flex-grow">
+            {{ forms.textField({
+                label: 'Display Duration'|t('social-proof'),
+                instructions: 'Seconds to show this notification.'|t('social-proof'),
+                id: 'displayDuration',
+                name: 'displayDuration',
+                value: notification.displayDuration,
+                type: 'number',
+                min: 1,
+                max: 60
+            }) }}
+        </div>
+        <div class="flex-grow">
+            {{ forms.textField({
+                label: 'Delay Between'|t('social-proof'),
+                instructions: 'Seconds before showing next notification.'|t('social-proof'),
+                id: 'delayBetween',
+                name: 'delayBetween',
+                value: notification.delayBetween,
+                type: 'number',
+                min: 1,
+                max: 120
+            }) }}
+        </div>
+    </div>
+
+{% endblock %}
+
+{% js %}
+(function() {
+    var typeSelect = document.getElementById('type');
+    var typePanels = document.querySelectorAll('.type-panel');
+
+    function updateTypePanels() {
+        var selectedType = typeSelect.value;
+        typePanels.forEach(function(panel) {
+            panel.style.display = panel.dataset.type === selectedType ? 'block' : 'none';
+        });
+    }
+
+    typeSelect.addEventListener('change', updateTypePanels);
+    updateTypePanels();
+
+    // Link type toggling
+    var linkTypeSelect = document.getElementById('settings-linkType');
+    var linkUrlField = document.getElementById('link-url-field');
+    var linkEntryField = document.getElementById('link-entry-field');
+    var linkAssetField = document.getElementById('link-asset-field');
+    var linkTargetField = document.getElementById('link-target-field');
+
+    function updateLinkFields() {
+        var linkType = linkTypeSelect.value;
+        linkUrlField.classList.toggle('hidden', linkType !== 'url');
+        linkEntryField.classList.toggle('hidden', linkType !== 'entry');
+        linkAssetField.classList.toggle('hidden', linkType !== 'asset');
+        linkTargetField.classList.toggle('hidden', !linkType);
+    }
+
+    linkTypeSelect.addEventListener('change', updateLinkFields);
+})();
+{% endjs %}

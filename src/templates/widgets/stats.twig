@@ -1,0 +1,131 @@
+<div class="social-proof-widget">
+    <div class="social-proof-widget-stats">
+        <div class="social-proof-widget-stat">
+            <div class="social-proof-widget-value">{{ stats.impressions|number_format }}</div>
+            <div class="social-proof-widget-label">{{ 'Impressions'|t('social-proof') }}</div>
+            {% if stats.impressionsTrend %}
+                <div class="social-proof-widget-trend social-proof-trend-{{ stats.impressionsTrend.direction }}">
+                    {% if stats.impressionsTrend.direction == 'up' %}
+                        <span>+{{ stats.impressionsTrend.percentage }}%</span>
+                    {% elseif stats.impressionsTrend.direction == 'down' %}
+                        <span>-{{ stats.impressionsTrend.percentage }}%</span>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="social-proof-widget-stat">
+            <div class="social-proof-widget-value">{{ stats.clicks|number_format }}</div>
+            <div class="social-proof-widget-label">{{ 'Clicks'|t('social-proof') }}</div>
+            {% if stats.clicksTrend %}
+                <div class="social-proof-widget-trend social-proof-trend-{{ stats.clicksTrend.direction }}">
+                    {% if stats.clicksTrend.direction == 'up' %}
+                        <span>+{{ stats.clicksTrend.percentage }}%</span>
+                    {% elseif stats.clicksTrend.direction == 'down' %}
+                        <span>-{{ stats.clicksTrend.percentage }}%</span>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="social-proof-widget-stat">
+            <div class="social-proof-widget-value">{{ stats.ctr }}%</div>
+            <div class="social-proof-widget-label">{{ 'CTR'|t('social-proof') }}</div>
+        </div>
+    </div>
+
+    <div class="social-proof-widget-chart">
+        {% for day in stats.dailyStats[-7:] %}
+            <div class="social-proof-widget-bar"
+                 style="height: {{ max(5, (day.impressions / max(1, stats.impressions / 7)) * 100) }}%"
+                 title="{{ day.date }}: {{ day.impressions }} impressions, {{ day.clicks }} clicks">
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="social-proof-widget-period">
+        {{ 'Last 7 days'|t('social-proof') }} &middot;
+        <a href="{{ cpUrl('social-proof/stats') }}">{{ 'View Details'|t('social-proof') }}</a>
+    </div>
+</div>
+
+<style>
+    .social-proof-widget {
+        padding: 4px 0;
+    }
+
+    .social-proof-widget-stats {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .social-proof-widget-stat {
+        flex: 1;
+        text-align: center;
+    }
+
+    .social-proof-widget-value {
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--text-color);
+    }
+
+    .social-proof-widget-label {
+        font-size: 11px;
+        color: var(--medium-text-color);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 2px;
+    }
+
+    .social-proof-widget-trend {
+        font-size: 12px;
+        margin-top: 4px;
+    }
+
+    .social-proof-trend-up {
+        color: #10b981;
+    }
+
+    .social-proof-trend-down {
+        color: #ef4444;
+    }
+
+    .social-proof-trend-neutral {
+        color: var(--medium-text-color);
+    }
+
+    .social-proof-widget-chart {
+        display: flex;
+        align-items: flex-end;
+        gap: 4px;
+        height: 60px;
+        padding: 8px 0;
+        border-top: 1px solid var(--hairline-color);
+        border-bottom: 1px solid var(--hairline-color);
+        margin-bottom: 12px;
+    }
+
+    .social-proof-widget-bar {
+        flex: 1;
+        background: linear-gradient(180deg, #6366f1, #8b5cf6);
+        border-radius: 2px 2px 0 0;
+        min-height: 4px;
+        transition: opacity 0.2s;
+    }
+
+    .social-proof-widget-bar:hover {
+        opacity: 0.8;
+    }
+
+    .social-proof-widget-period {
+        font-size: 12px;
+        color: var(--medium-text-color);
+        text-align: center;
+    }
+
+    .social-proof-widget-period a {
+        color: var(--link-color);
+    }
+</style>

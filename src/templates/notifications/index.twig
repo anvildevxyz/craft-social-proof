@@ -1,0 +1,10 @@
+{% extends '_layouts/elementindex' %}
+
+{% set title = 'Social Proof Notifications'|t('social-proof') %}
+{% set elementType = elementType %}
+{% set showStatusMenu = true %}
+{% set showSiteMenu = true %}
+
+{% block actionButton %}
+    <a href="{{ url('social-proof/notifications/new') }}" class="btn submit">{{ 'New Notification'|t('social-proof') }}</a>
+{% endblock %}

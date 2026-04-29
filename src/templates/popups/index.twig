@@ -1,0 +1,5 @@
+{% extends "_layouts/elementindex" %}
+
+{% set title = "Popups"|t('social-proof') %}
+{% set elementType = "anvildev\\socialproof\\elements\\PopupElement" %}
+{% set newElementBtn = tag('a', { class: ['btn', 'submit', 'add', 'icon'], href: url('social-proof/popups/new'), text: 'New popup'|t('social-proof') }) %}
