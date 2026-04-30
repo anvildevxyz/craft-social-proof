@@ -194,6 +194,17 @@ class Plugin extends BasePlugin
             }
         }
 
+        $orderStatusOptions = [];
+        if ($commerceInstalled) {
+            $statuses = \craft\commerce\Plugin::getInstance()->getOrderStatuses()->getAllOrderStatuses();
+            foreach ($statuses as $status) {
+                $orderStatusOptions[] = [
+                    'label' => $status->name,
+                    'value' => $status->handle,
+                ];
+            }
+        }
+
         return Craft::$app->getView()->renderTemplate(
             'social-proof/settings',
             [
@@ -201,6 +212,7 @@ class Plugin extends BasePlugin
                 'settings' => $this->getSettings(),
                 'commerceInstalled' => $commerceInstalled,
                 'productTypes' => $productTypes,
+                'orderStatusOptions' => $orderStatusOptions,
                 'positionOptions' => [
                     ['label' => Craft::t('social-proof', 'Bottom Left'), 'value' => 'bottom-left'],
                     ['label' => Craft::t('social-proof', 'Bottom Right'), 'value' => 'bottom-right'],
@@ -293,6 +305,46 @@ class Plugin extends BasePlugin
                     Craft::error('Popup attribution failed: ' . $e->getMessage(), __METHOD__);
                 }
             }
+        );
+
+        /** @phpstan-ignore-next-line - Commerce is an optional dependency */
+        Event::on(
+            \craft\commerce\services\Transactions::class,
+            \craft\commerce\services\Transactions::EVENT_AFTER_SAVE_TRANSACTION,
+            function (\craft\commerce\events\TransactionEvent $event): void {
+                $txn = $event->transaction;
+                if ($txn->orderId === null) {
+                    return;
+                }
+                if (!$this->commerce->shouldHandleRefundTransaction((string) $txn->type, (string) $txn->status)) {
+                    return;
+                }
+                try {
+                    $this->commerce->removeOrderFromCache((int) $txn->orderId);
+                } catch (\Throwable $e) {
+                    Craft::error('Social-proof refund purge failed: ' . $e->getMessage(), __METHOD__);
+                }
+            },
+        );
+
+        /** @phpstan-ignore-next-line - Commerce is an optional dependency */
+        Event::on(
+            \craft\commerce\elements\Order::class,
+            \craft\commerce\elements\Order::EVENT_AFTER_SAVE,
+            function (Event $event): void {
+                /** @var \craft\commerce\elements\Order $order */
+                $order = $event->sender;
+                $statusHandle = $order->getOrderStatus()?->handle;
+                $excluded = $this->getSettings()->excludedOrderStatusHandles;
+                if (!$this->commerce->shouldHandleStatusChange($statusHandle, $excluded)) {
+                    return;
+                }
+                try {
+                    $this->commerce->removeOrderFromCache((int) $order->id);
+                } catch (\Throwable $e) {
+                    Craft::error('Social-proof status-change purge failed: ' . $e->getMessage(), __METHOD__);
+                }
+            },
         );
     }
 

@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Cached purchase notifications are now purged when an order is refunded (`Transactions::EVENT_AFTER_SAVE_TRANSACTION`, `type=refund`, `status=success`).
+- Cached purchase notifications are now purged when an order's status changes to a configurable allowlist of handles (default: `['cancelled']`). Configure under **Social Proof → Settings → Purchases → Purge notifications when order moves to status**.
+- New setting `excludedOrderStatusHandles` (overridable via `config/social-proof.php`).
+
 ## [1.0.0] - 2026-04-29
 
 Initial public release. Two conversion-messaging surfaces sharing one

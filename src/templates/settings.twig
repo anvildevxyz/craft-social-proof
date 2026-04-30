@@ -269,6 +269,17 @@
                 options: productTypes
             }) }}
         {% endif %}
+
+        {% if commerceInstalled %}
+            {{ forms.checkboxSelectField({
+                label: 'Purge notifications when order moves to status'|t('social-proof'),
+                instructions: 'Cached purchase notifications are removed when an order\'s status changes to one of these. Useful for cancelled, fraud, or chargeback orders.'|t('social-proof'),
+                id: 'excludedOrderStatusHandles',
+                name: 'excludedOrderStatusHandles',
+                values: settings.excludedOrderStatusHandles,
+                options: orderStatusOptions,
+            }) }}
+        {% endif %}
     </div>
 
     {# ═══════════════════════════════════════════════════════════════════════════

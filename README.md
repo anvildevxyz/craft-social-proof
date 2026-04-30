@@ -34,6 +34,15 @@ Show recent purchases to create urgency and social proof. Requires Craft Commerc
 
 > "Sarah from London purchased Widget Pro - 5 minutes ago"
 
+### Refund & Cancellation Handling
+
+Cached purchase notifications are automatically removed in two cases:
+
+- **Refund**: when a successful refund transaction is recorded against the order in Craft Commerce.
+- **Cancellation / fraud / chargeback**: when the order's status changes to any handle listed in the **Purge notifications when order moves to status** setting (default: `cancelled`).
+
+Visitors stop seeing notifications for affected orders within seconds of the refund or status change. The plugin does not display any refund-related UI to visitors — affected notifications simply disappear from the rotation.
+
 ### Viewer Count
 Display how many people are currently viewing a page.
 

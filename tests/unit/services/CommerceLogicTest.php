@@ -47,6 +47,91 @@ class CommerceLogicTest extends TestCase
     }
 
     // ═══════════════════════════════════════════════════════════════════════
+    // Refund transaction predicate
+    // ═══════════════════════════════════════════════════════════════════════
+
+    public function testRefundWithSuccessStatusShouldBeHandled(): void
+    {
+        $this->assertTrue(
+            $this->service->shouldHandleRefundTransaction('refund', 'success'),
+        );
+    }
+
+    public function testRefundWithFailedStatusShouldNotBeHandled(): void
+    {
+        $this->assertFalse(
+            $this->service->shouldHandleRefundTransaction('refund', 'failed'),
+        );
+    }
+
+    public function testRefundWithProcessingStatusShouldNotBeHandled(): void
+    {
+        $this->assertFalse(
+            $this->service->shouldHandleRefundTransaction('refund', 'processing'),
+        );
+    }
+
+    public function testPurchaseWithSuccessStatusShouldNotBeHandled(): void
+    {
+        $this->assertFalse(
+            $this->service->shouldHandleRefundTransaction('purchase', 'success'),
+        );
+    }
+
+    public function testCaptureWithSuccessStatusShouldNotBeHandled(): void
+    {
+        $this->assertFalse(
+            $this->service->shouldHandleRefundTransaction('capture', 'success'),
+        );
+    }
+
+    public function testAuthorizeWithSuccessStatusShouldNotBeHandled(): void
+    {
+        $this->assertFalse(
+            $this->service->shouldHandleRefundTransaction('authorize', 'success'),
+        );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // Order status change predicate
+    // ═══════════════════════════════════════════════════════════════════════
+
+    public function testStatusInExcludedListShouldBeHandled(): void
+    {
+        $this->assertTrue(
+            $this->service->shouldHandleStatusChange('cancelled', ['cancelled']),
+        );
+    }
+
+    public function testStatusInLargerExcludedListShouldBeHandled(): void
+    {
+        $this->assertTrue(
+            $this->service->shouldHandleStatusChange('fraud', ['cancelled', 'fraud', 'chargeback']),
+        );
+    }
+
+    public function testStatusNotInExcludedListShouldNotBeHandled(): void
+    {
+        $this->assertFalse(
+            $this->service->shouldHandleStatusChange('processing', ['cancelled']),
+        );
+    }
+
+    public function testNullStatusShouldNotBeHandled(): void
+    {
+        $this->assertFalse(
+            $this->service->shouldHandleStatusChange(null, ['cancelled']),
+        );
+    }
+
+    public function testEmptyExcludedListShouldNotBeHandled(): void
+    {
+        $this->assertFalse(
+            $this->service->shouldHandleStatusChange('cancelled', []),
+        );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
     // Helpers
     // ═══════════════════════════════════════════════════════════════════════
 

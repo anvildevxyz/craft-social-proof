@@ -80,6 +80,7 @@ class SettingsController extends Controller
             'viewerModeOptions' => $this->_getViewerModeOptions(),
             'webhookBreakerStates' => $webhookBreakerStates,
             'webhookDeliveries' => $webhookDeliveries,
+            'orderStatusOptions' => $this->_getOrderStatusOptions(),
         ]);
     }
 
@@ -122,6 +123,7 @@ class SettingsController extends Controller
         $settings->abTestPercentage = (int)$request->getBodyParam('abTestPercentage', 50);
 
         $settings->excludedProductTypes = $request->getBodyParam('excludedProductTypes', []) ?: [];
+        $settings->excludedOrderStatusHandles = $request->getBodyParam('excludedOrderStatusHandles', []) ?: [];
         $settings->includedCategories = $request->getBodyParam('includedCategories', []) ?: [];
 
         $settings->includedUrlPatterns = array_filter(
@@ -142,6 +144,7 @@ class SettingsController extends Controller
                 'positionOptions' => $this->_getPositionOptions(),
                 'animationOptions' => $this->_getAnimationOptions(),
                 'viewerModeOptions' => $this->_getViewerModeOptions(),
+                'orderStatusOptions' => $this->_getOrderStatusOptions(),
             ]);
         }
 
@@ -306,6 +309,29 @@ class SettingsController extends Controller
             $options[] = [
                 'label' => $type->name,
                 'value' => $type->handle,
+            ];
+        }
+
+        return $options;
+    }
+
+    /**
+     * @return list<array{label: string, value: string}>
+     */
+    private function _getOrderStatusOptions(): array
+    {
+        if (!Plugin::isCommerceInstalled()) {
+            return [];
+        }
+
+        /** @phpstan-ignore-next-line - Commerce is an optional dependency */
+        $statuses = \craft\commerce\Plugin::getInstance()->getOrderStatuses()->getAllOrderStatuses();
+        $options = [];
+
+        foreach ($statuses as $status) {
+            $options[] = [
+                'label' => $status->name,
+                'value' => $status->handle,
             ];
         }
 

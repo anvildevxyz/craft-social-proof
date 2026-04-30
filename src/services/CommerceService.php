@@ -241,6 +241,60 @@ class CommerceService extends Component
         return $result;
     }
 
+    /**
+     * Returns true when a saved transaction represents a successful refund and
+     * its order's cached notifications should be purged.
+     *
+     * Compared as string literals (not Commerce constants) so the service is
+     * testable when Commerce is not loaded. Values match
+     * \craft\commerce\records\Transaction::TYPE_REFUND ('refund') and
+     * STATUS_SUCCESS ('success').
+     */
+    public function shouldHandleRefundTransaction(string $type, string $status): bool
+    {
+        return $type === 'refund' && $status === 'success';
+    }
+
+    /**
+     * Returns true when an order has just transitioned into a status whose
+     * cached notifications should be purged. Null status (e.g. an order with
+     * no orderStatus assigned) is never handled.
+     *
+     * @param array<int,string> $excludedStatusHandles
+     */
+    public function shouldHandleStatusChange(?string $statusHandle, array $excludedStatusHandles): bool
+    {
+        if ($statusHandle === null) {
+            return false;
+        }
+
+        return in_array($statusHandle, $excludedStatusHandles, true);
+    }
+
+    /**
+     * Remove every cached purchase notification belonging to an order. Called
+     * when the order is refunded or transitions to a status that should
+     * suppress its notifications. Idempotent — calling on an order with no
+     * cached rows is a no-op.
+     *
+     * @return int Number of rows deleted.
+     */
+    public function removeOrderFromCache(int $orderId): int
+    {
+        $deleted = (int) Craft::$app->getDb()->createCommand()
+            ->delete('{{%socialproof_orders}}', ['orderId' => $orderId])
+            ->execute();
+
+        if ($deleted > 0) {
+            Craft::info(
+                "Removed {$deleted} cached notification row(s) for order {$orderId}",
+                __METHOD__,
+            );
+        }
+
+        return $deleted;
+    }
+
     public function getRecentOrderCount(int $hours = 24): int
     {
         $cutoffDate = Time::utcNow()->modify("-{$hours} hours");

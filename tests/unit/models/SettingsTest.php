@@ -35,6 +35,7 @@ class SettingsTest extends TestCase
         $this->assertSame([], $s->includedCategories);
         $this->assertSame([], $s->includedUrlPatterns);
         $this->assertSame([], $s->excludedUrlPatterns);
+        $this->assertSame(['cancelled'], $s->excludedOrderStatusHandles);
     }
 
     public function testDefaultPurchaseTemplate(): void
@@ -298,7 +299,7 @@ class SettingsTest extends TestCase
             'position', 'displayDuration', 'delayBetween', 'animationIn', 'animationOut',
             'showProductImage', 'showDismissButton', 'abTestingEnabled', 'abTestPercentage',
             'demoMode', 'excludedProductTypes', 'includedCategories',
-            'includedUrlPatterns', 'excludedUrlPatterns',
+            'includedUrlPatterns', 'excludedUrlPatterns', 'excludedOrderStatusHandles',
         ];
 
         foreach ($expected as $key) {
@@ -327,6 +328,23 @@ class SettingsTest extends TestCase
         $this->assertSame($original->demoMode, $restored->demoMode);
         $this->assertSame($original->excludedProductTypes, $restored->excludedProductTypes);
         $this->assertSame($original->includedUrlPatterns, $restored->includedUrlPatterns);
+    }
+
+    public function testExcludedOrderStatusHandlesRoundTrip(): void
+    {
+        $original = new Settings();
+        $original->excludedOrderStatusHandles = ['cancelled', 'fraud', 'chargeback'];
+
+        $arr = $original->toArray();
+
+        $restored = new Settings();
+        $restored->setAttributes($arr, false);
+
+        $this->assertSame(
+            ['cancelled', 'fraud', 'chargeback'],
+            $restored->excludedOrderStatusHandles,
+        );
+        $this->assertTrue($restored->validate());
     }
 
     public function testConfigFileOverrideSimulation(): void

@@ -89,6 +89,14 @@ class Settings extends Model
     public array $excludedProductTypes = [];
 
     /**
+     * @var array<int,string> Order status handles that purge cached purchase
+     *   notifications when an order transitions to one of them. Default
+     *   covers the standard "cancelled" status; stores can add `fraud`,
+     *   `void`, `chargeback`, etc. via CP settings or config file.
+     */
+    public array $excludedOrderStatusHandles = ['cancelled'];
+
+    /**
      * @var array Category IDs to include (empty = all)
      */
     public array $includedCategories = [];
@@ -139,7 +147,7 @@ class Settings extends Model
             [['webhookBreakerThreshold'], 'integer', 'min' => 0, 'max' => 1000],
             [['webhookBreakerCooldownSeconds'], 'integer', 'min' => 1, 'max' => 86400],
 
-            [['excludedProductTypes', 'includedCategories', 'includedUrlPatterns', 'excludedUrlPatterns'], 'each', 'rule' => ['string']],
+            [['excludedProductTypes', 'includedCategories', 'includedUrlPatterns', 'excludedUrlPatterns', 'excludedOrderStatusHandles'], 'each', 'rule' => ['string']],
 
             [['webhooks'], function ($attr) {
                 $rows = $this->$attr ?? [];
